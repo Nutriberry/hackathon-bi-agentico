@@ -158,6 +158,28 @@ def _leer_resultado(resultado):
     return valores
 
 
+async def _llamar_gemini(cliente, mensajes, config, intentos: int = 3):
+    """Llama a Gemini y reintenta si Google está saturado (503) o se supera la
+    cuota por minuto (429). Espera 5 s, 10 s y 20 s entre intentos."""
+    espera = 5
+    for intento in range(1, intentos + 1):
+        try:
+            return await asyncio.to_thread(
+                cliente.models.generate_content,
+                model=MODELO,
+                contents=mensajes,
+                config=config,
+            )
+        except Exception as e:
+            texto = str(e)
+            temporal = any(c in texto for c in ("503", "429", "UNAVAILABLE", "RESOURCE_EXHAUSTED"))
+            if not temporal or intento == intentos:
+                raise
+            logging.info("Gemini no disponible (%s). Reintento %s en %s s", texto[:80], intento, espera)
+            await asyncio.sleep(espera)
+            espera *= 2
+
+
 # ── Núcleo async ───────────────────────────────────────────────────────────────
 
 async def _responder_async(pregunta: str) -> dict:
@@ -200,12 +222,7 @@ async def _responder_async(pregunta: str) -> dict:
 
             # 3. Bucle herramienta → LLM (máximo MAX_VUELTAS)
             for _ in range(MAX_VUELTAS):
-                respuesta = await asyncio.to_thread(
-                    cliente.models.generate_content,
-                    model=MODELO,
-                    contents=mensajes,
-                    config=config,
-                )
+                respuesta = await _llamar_gemini(cliente, mensajes, config)
 
                 candidato = respuesta.candidates[0]
                 if candidato.content is None or not candidato.content.parts:
@@ -276,7 +293,21 @@ def responder(pregunta: str) -> dict:
     Returns:
         {"respuesta": str, "herramientas_usadas": list[dict]}
     """
-    return asyncio.run(_responder_async(pregunta))
+    try:
+        return asyncio.run(_responder_async(pregunta))
+    except BaseException as e:
+        # El cliente MCP envuelve los errores en un "TaskGroup"; sacamos el error real
+        while isinstance(e, BaseExceptionGroup) and e.exceptions:
+            e = e.exceptions[0]
+        texto = str(e)
+        if any(c in texto for c in ("503", "UNAVAILABLE")):
+            mensaje = "El servicio de Gemini (Google) está saturado ahora mismo. Vuelve a intentarlo en unos segundos."
+        elif any(c in texto for c in ("429", "RESOURCE_EXHAUSTED")):
+            mensaje = "Se ha superado la cuota gratuita de Gemini por minuto. Espera un minuto y vuelve a intentarlo."
+        else:
+            mensaje = f"Error al responder: {texto}"
+        logging.info("PREGUNTA: %s | ERROR: %s", pregunta, texto[:300])
+        return {"respuesta": mensaje, "herramientas_usadas": []}
 
 
 # ── Prueba rápida ──────────────────────────────────────────────────────────────
