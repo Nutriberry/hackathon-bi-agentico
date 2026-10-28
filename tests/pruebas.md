@@ -17,7 +17,7 @@ Las pruebas P01–P09 y P12 se ejecutan de forma automática con `tests/ejecutar
 | **P07** | Agente Gemini | Detección de productos con caída en ventas | Pregunta: *"¿Qué productos importantes están cayendo?"* | Utiliza la herramienta `productos_en_riesgo` y los números devueltos coinciden con `tests/kpi_referencia.md`. | | Pendiente | |
 | **P08** | Agente Gemini | Delimitación del dominio y fuera de ámbito | Pregunta: *"¿Qué tiempo hace en Madrid?"* | El agente se niega amablemente a responder sin invocar ninguna herramienta. | | Pendiente | |
 | **P09** | Agente Gemini | Control de alucinaciones ante datos no disponibles | Pregunta: *"¿Cuál es el stock actual?"* | Responde claramente que no dispone de dichos datos, absteniéndose de inventar cifras. | | Pendiente | |
-| **P10** | Frontend Streamlit | Interfaz interactiva y explicabilidad (4 botones) | Abrir app en Modo Real y pulsar los 4 botones predefinidos | Muestra la respuesta del agente y el desplegable *"Cómo lo ha calculado"* conteniendo la tabla correspondiente. | | Pendiente | |
+| **P10** | Frontend Streamlit | Interfaz interactiva y explicabilidad (4 botones) | Abrir app en Modo Real y pulsar los 4 botones predefinidos | Muestra la respuesta del agente y el desplegable *"Cómo lo ha calculado"* conteniendo la tabla correspondiente. | Los 4 botones responden con datos reales y citan la herramienta usada (`kpi_resumen`, `productos_en_riesgo`, `tasa_cancelacion`). Se detectó además un error 503 de Gemini sin tratar, ya corregido con reintentos. | Pasada | `tests/evidencias/P10_1_resumen_kpi.png`, `P10_2_productos_cayendo.png`, `P10_3_cancelaciones.png`, `P10_4_recomendacion.png`, `P10_error_503.png` |
 | **P11** | Flujo Completo | Integración End-to-End desde la UI | Pregunta escrita manualmente en el chat interactivo | Muestra la respuesta contextualizada utilizando los datos reales almacenados en Supabase. | | Pendiente | |
 | **P12** | Seguridad | Exposición de credenciales e ignorado de entorno | Búsqueda global de `.env`, claves API o secretos en el repositorio GitHub | La búsqueda no arroja ningún resultado ni archivo de entorno subido. | | Pendiente | |
 
@@ -128,10 +128,14 @@ Las pruebas P01–P09 y P12 se ejecutan de forma automática con `tests/ejecutar
 * **Qué se prueba:** Integración con la UI, ejecución de los 4 botones predefinidos y visibilidad del razonamiento/cálculos.
 * **Entrada:** Selección del Modo Real en Streamlit y pulsación de cada uno de los 4 botones.
 * **Esperado:** Muestra la respuesta generada y despliega la sección *"Cómo lo ha calculado"* incorporando la tabla con el desglose.
-* **Obtenido:** 
-* **Estado:** Pendiente
-* **Evidencia:** 
-* **Si falla (causa y corrección):** 
+* **Obtenido:**
+  * *"Dame el resumen de KPI"* → facturación total 20.108.995,40, 4.878 productos, 1.036 clase A, 80,02 % — cita la herramienta `kpi_resumen`.
+  * *"¿Qué productos importantes están cayendo?"* → lista de productos clase A con variación -100 % (RED WHITE SCARF HOT WATER BOTTLE, WHITE DOVE HONEYCOMB PAPER GARLAND, SET OF THREE VINTAGE GIFT WRAPS...) vía `productos_en_riesgo`.
+  * *"¿Qué productos tienen más cancelaciones?"* → tabla con BLACK CHERRY LIGHTS (102,06 %), PAPER CRAFT LITTLE BIRDIE (100 %), LITTLE FLOWER SHOPPER BAG (100 %), MEDIUM CERAMIC TOP STORAGE JAR (95,46 %) vía `tasa_cancelacion`; ya no aparece "Discount" (ver decisión #15 en `docs/decisiones.md`).
+  * *"¿Qué recomiendas reponer o revisar?"* → resumen inicial + tabla por producto con acción recomendada (ej. SET OF 3 CASES WOODLAND DESIGN → "Reducir reposición o lanzar promoción").
+* **Estado:** Pasada
+* **Evidencia:** `tests/evidencias/P10_1_resumen_kpi.png`, `P10_2_productos_cayendo.png`, `P10_3_cancelaciones.png`, `P10_4_recomendacion.png`
+* **Si falla (causa y corrección):** Durante la prueba apareció una vez el error crudo *"Algo ha fallado al responder: unhandled errors in a TaskGroup (1 sub-exception)"* al pulsar *"¿Qué productos tienen más cancelaciones?"* (captura `P10_error_503.png`) — causa: error 503 de Gemini (servicio saturado) sin capturar en `agents/agente.py`. Corregido con reintentos automáticos (5 s/10 s/20 s) y mensaje claro en vez de la excepción cruda (commit "Reintentos y mensaje claro ante 503/429 de Gemini").
 
 ---
 
