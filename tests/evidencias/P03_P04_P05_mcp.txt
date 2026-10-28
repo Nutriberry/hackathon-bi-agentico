@@ -1,0 +1,11 @@
+P03 - Listado de herramientas del servidor retail-bi
+Herramientas encontradas: ['kpi_resumen', 'productos_en_riesgo', 'tasa_cancelacion', 'ventas_producto']
+Son las 4 esperadas: True
+
+P04 - kpi_resumen vs tests/kpi_referencia.md
+Resultado: {'facturacion_total': 20108995.4, 'n_productos': 4878, 'n_productos_a': 1036, 'pct_facturacion_a': 0.8002}
+
+P05 - ventas_producto con código inexistente XXXX
+is_error: False
+Resultado: [] (lista vacía, sin excepción)
+El servidor sigue vivo tras la llamada (se verificó con una nueva llamada a kpi_resumen en la misma sesión, que respondió con éxito).

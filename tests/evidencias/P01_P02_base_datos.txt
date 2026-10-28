@@ -1,0 +1,15 @@
+P01 - Conteo total de registros
+Consulta: SELECT count(*) FROM ventas;
+Resultado: 1067371 filas
+Excel original (Online Retail II, verificado en backend/cargar_datos.py al cargar): 1067371 filas
+Coincide: True
+
+P02 - Consulta de un producto concreto (stock_code 85123A)
+Consulta: SELECT * FROM ventas WHERE stock_code = '85123A';
+Filas devueltas: 5829
+Primeras 5 filas:
+  ('489442', '85123A', 'WHITE HANGING HEART T-LIGHT HOLDER', 6, datetime.datetime(2009, 12, 1, 9, 46), Decimal('2.95'))
+  ('489446', '85123A', 'WHITE HANGING HEART T-LIGHT HOLDER', 32, datetime.datetime(2009, 12, 1, 10, 6), Decimal('2.55'))
+  ('489465', '85123A', 'WHITE HANGING HEART T-LIGHT HOLDER', 64, datetime.datetime(2009, 12, 1, 10, 52), Decimal('2.55'))
+  ('489467', '85123A', '21733 mixed', -192, datetime.datetime(2009, 12, 1, 10, 53), Decimal('0.0'))
+  ('489517', '85123A', 'WHITE HANGING HEART T-LIGHT HOLDER', 1, datetime.datetime(2009, 12, 1, 11, 34), Decimal('2.95'))
