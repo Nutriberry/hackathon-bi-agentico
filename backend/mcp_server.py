@@ -1,0 +1,227 @@
+"""Servidor MCP "retail-bi": solo lectura sobre la tabla `ventas` de Supabase.
+
+Excluye siempre cancelaciones y price<=0, salvo en tasa_cancelacion (que sí
+necesita ver las cancelaciones para calcular la tasa).
+"""
+import sys
+from pathlib import Path
+
+from mcp.server.mcpserver import MCPServer
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from db import consultar
+
+mcp = MCPServer("retail-bi")
+
+FILTRO_VENTAS_VALIDAS = "NOT es_cancelacion AND price > 0"
+
+
+@mcp.tool()
+def kpi_resumen() -> dict:
+    """Devuelve el resumen global de KPI: facturación total, número de productos,
+    número de productos clase A y el % de facturación que representa la clase A.
+    Útil como primer paso para dar contexto general antes de responder preguntas
+    más específicas sobre riesgo o cancelaciones."""
+    try:
+        filas = consultar(f"""
+            WITH facturacion_producto AS (
+                SELECT stock_code, SUM(importe) AS facturacion
+                FROM ventas
+                WHERE {FILTRO_VENTAS_VALIDAS}
+                GROUP BY stock_code
+            ),
+            acumulado AS (
+                SELECT
+                    stock_code, facturacion,
+                    SUM(facturacion) OVER (ORDER BY facturacion DESC) AS facturacion_acumulada,
+                    SUM(facturacion) OVER () AS facturacion_total
+                FROM facturacion_producto
+            )
+            SELECT
+                COUNT(*) AS n_productos,
+                SUM(facturacion) AS facturacion_total,
+                COUNT(*) FILTER (WHERE (facturacion_acumulada - facturacion) / facturacion_total < 0.8) AS n_productos_a,
+                SUM(facturacion) FILTER (WHERE (facturacion_acumulada - facturacion) / facturacion_total < 0.8) AS facturacion_a
+            FROM acumulado;
+        """)
+        fila = filas[0]
+        facturacion_total = float(fila["facturacion_total"])
+        facturacion_a = float(fila["facturacion_a"])
+        return {
+            "facturacion_total": round(facturacion_total, 2),
+            "n_productos": fila["n_productos"],
+            "n_productos_a": fila["n_productos_a"],
+            "pct_facturacion_a": round(facturacion_a / facturacion_total, 4),
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def productos_en_riesgo(umbral_caida: float = 0.30, limite: int = 10) -> list[dict]:
+    """Devuelve los productos de clase A (los que generan el 80% de la facturación)
+    cuyas ventas de sep-nov 2011 cayeron más de `umbral_caida` (ej. 0.30 = 30%)
+    frente al mismo periodo sep-nov 2010. Ordenados de mayor a menor caída.
+    Úsala para responder preguntas tipo "¿qué productos importantes están cayendo?"."""
+    try:
+        filas = consultar(f"""
+            WITH facturacion_producto AS (
+                SELECT stock_code, SUM(importe) AS facturacion
+                FROM ventas
+                WHERE {FILTRO_VENTAS_VALIDAS}
+                GROUP BY stock_code
+            ),
+            acumulado AS (
+                SELECT
+                    stock_code, facturacion,
+                    SUM(facturacion) OVER (ORDER BY facturacion DESC) AS facturacion_acumulada,
+                    SUM(facturacion) OVER () AS facturacion_total
+                FROM facturacion_producto
+            ),
+            clase_a AS (
+                SELECT stock_code
+                FROM acumulado
+                WHERE (facturacion_acumulada - facturacion) / facturacion_total < 0.8
+            ),
+            ventas_2011 AS (
+                SELECT stock_code, SUM(importe) AS facturacion_2011
+                FROM ventas
+                WHERE {FILTRO_VENTAS_VALIDAS}
+                  AND invoice_date >= '2011-09-01' AND invoice_date < '2011-12-01'
+                GROUP BY stock_code
+            ),
+            ventas_2010 AS (
+                SELECT stock_code, SUM(importe) AS facturacion_2010
+                FROM ventas
+                WHERE {FILTRO_VENTAS_VALIDAS}
+                  AND invoice_date >= '2010-09-01' AND invoice_date < '2010-12-01'
+                GROUP BY stock_code
+            ),
+            -- algunos stock_code tienen más de una descripción en el dataset; nos
+            -- quedamos con la más frecuente para no duplicar filas en el resultado
+            descripcion AS (
+                SELECT stock_code, description FROM (
+                    SELECT stock_code, description, COUNT(*) AS n,
+                           ROW_NUMBER() OVER (PARTITION BY stock_code ORDER BY COUNT(*) DESC) AS rn
+                    FROM ventas
+                    WHERE description IS NOT NULL AND description != ''
+                    GROUP BY stock_code, description
+                ) t WHERE rn = 1
+            )
+            SELECT
+                a.stock_code,
+                d.description,
+                v10.facturacion_2010 AS ventas_2010,
+                COALESCE(v11.facturacion_2011, 0) AS ventas_2011,
+                (COALESCE(v11.facturacion_2011, 0) - v10.facturacion_2010) / v10.facturacion_2010 AS variacion_pct
+            FROM clase_a a
+            JOIN ventas_2010 v10 ON v10.stock_code = a.stock_code
+            LEFT JOIN ventas_2011 v11 ON v11.stock_code = a.stock_code
+            LEFT JOIN descripcion d ON d.stock_code = a.stock_code
+            WHERE v10.facturacion_2010 > 0
+              AND (COALESCE(v11.facturacion_2011, 0) - v10.facturacion_2010) / v10.facturacion_2010 < -%s
+            ORDER BY variacion_pct ASC
+            LIMIT %s;
+        """, (umbral_caida, limite))
+        return [
+            {
+                "stock_code": f["stock_code"],
+                "description": f["description"],
+                "ventas_2010": round(float(f["ventas_2010"]), 2),
+                "ventas_2011": round(float(f["ventas_2011"]), 2),
+                "variacion_pct": round(float(f["variacion_pct"]), 4),
+            }
+            for f in filas
+        ]
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def tasa_cancelacion(min_unidades: int = 100, limite: int = 10) -> list[dict]:
+    """Devuelve los productos con mayor tasa de cancelación (unidades canceladas /
+    unidades vendidas), considerando solo productos con al menos `min_unidades`
+    unidades vendidas. Útil para preguntas tipo "¿qué productos tienen más
+    cancelaciones / problemas de calidad?"."""
+    try:
+        filas = consultar("""
+            WITH vendidas AS (
+                SELECT stock_code, SUM(quantity) AS unidades_vendidas
+                FROM ventas
+                WHERE NOT es_cancelacion AND price > 0
+                GROUP BY stock_code
+                HAVING SUM(quantity) >= %s
+            ),
+            canceladas AS (
+                SELECT stock_code, SUM(ABS(quantity)) AS unidades_canceladas
+                FROM ventas
+                WHERE es_cancelacion
+                GROUP BY stock_code
+            ),
+            -- algunos stock_code tienen más de una descripción en el dataset; nos
+            -- quedamos con la más frecuente para no duplicar filas en el resultado
+            descripcion AS (
+                SELECT stock_code, description FROM (
+                    SELECT stock_code, description, COUNT(*) AS n,
+                           ROW_NUMBER() OVER (PARTITION BY stock_code ORDER BY COUNT(*) DESC) AS rn
+                    FROM ventas
+                    WHERE description IS NOT NULL AND description != ''
+                    GROUP BY stock_code, description
+                ) t WHERE rn = 1
+            )
+            SELECT
+                v.stock_code,
+                d.description,
+                v.unidades_vendidas,
+                COALESCE(c.unidades_canceladas, 0) AS unidades_canceladas,
+                COALESCE(c.unidades_canceladas, 0)::numeric / v.unidades_vendidas AS tasa
+            FROM vendidas v
+            LEFT JOIN canceladas c ON c.stock_code = v.stock_code
+            LEFT JOIN descripcion d ON d.stock_code = v.stock_code
+            ORDER BY tasa DESC
+            LIMIT %s;
+        """, (min_unidades, limite))
+        return [
+            {
+                "stock_code": f["stock_code"],
+                "description": f["description"],
+                "unidades_vendidas": f["unidades_vendidas"],
+                "unidades_canceladas": f["unidades_canceladas"],
+                "tasa": round(float(f["tasa"]), 4),
+            }
+            for f in filas
+        ]
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def ventas_producto(stock_code: str) -> list[dict]:
+    """Devuelve la serie mensual de unidades e importe vendidos de un producto
+    (identificado por `stock_code`), excluyendo cancelaciones y price<=0. Útil
+    para ver la evolución histórica de un producto concreto mes a mes."""
+    try:
+        filas = consultar(f"""
+            SELECT
+                to_char(date_trunc('month', invoice_date), 'YYYY-MM') AS mes,
+                SUM(quantity) AS unidades,
+                SUM(importe) AS importe
+            FROM ventas
+            WHERE {FILTRO_VENTAS_VALIDAS} AND stock_code = %s
+            GROUP BY date_trunc('month', invoice_date)
+            ORDER BY date_trunc('month', invoice_date);
+        """, (stock_code,))
+        return [
+            {
+                "mes": f["mes"],
+                "unidades": f["unidades"],
+                "importe": round(float(f["importe"]), 2),
+            }
+            for f in filas
+        ]
+    except Exception as e:
+        return {"error": str(e)}
+
+
+if __name__ == "__main__":
+    mcp.run(transport="stdio")
