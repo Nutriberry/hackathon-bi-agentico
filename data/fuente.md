@@ -62,6 +62,10 @@ El análisis del dataset reveló un total de **1.067.371 filas** (rango temporal
   * *Tratamiento:* Excluir del cálculo del análisis ABC de ventas netas o asociar a sus órdenes correspondientes según la regla de negocio del proyecto.
 * **Códigos que no son productos reales:** **62 `stock_code` distintos** (`POST`, `DOT`, `M`, `D`, `BANK CHARGES`, `AMAZONFEE`, `ADJUST`, `TEST...`, `gift_...`, etc.) no corresponden a artículos del catálogo, sino a gastos de envío, comisiones, descuentos, ajustes manuales o pruebas internas; 6.093 filas en total, detectado porque el stock_code `D` ("Discount") aparecía como el producto con mayor tasa de cancelación. Evidencia completa en `tests/evidencias/codigos_no_producto.txt`.
   * *Tratamiento:* Excluir de las herramientas MCP y de los KPI de referencia exigiendo que `stock_code` empiece por 5 cifras (`^[0-9]{5}`), que es el formato real de los productos del catálogo.
+* **`productos_en_riesgo` dominado por caídas del -100 %:** la mayoría de los resultados son productos con ventas 2011 = 0 en el periodo comparado, que probablemente están descatalogados en vez de "en riesgo" (caída parcial, aún con ventas).
+  * *Mejora propuesta:* separar "descatalogados" (ventas 2011 = 0) de "en caída" (variación entre -30 % y -99 %) en vez de mostrarlos juntos.
+* **`tasa_cancelacion` distorsionada por pedidos únicos anulados enteros y tasas >100 %:** productos como `23843` (PAPER CRAFT, LITTLE BIRDIE: 80.995 unidades vendidas = 80.995 canceladas) dominan el ranking por ser un solo pedido grande anulado completo; además hay tasas >100 % porque las cancelaciones corresponden a compras anteriores a diciembre de 2009 (fuera del rango del dataset), por lo que sus "vendidas" no se contabilizan.
+  * *Mejora propuesta:* contar pedidos (`invoice`) cancelados en vez de unidades, o exigir un mínimo de pedidos distintos además del mínimo de unidades vendidas.
 
 ## 5. Carga en Base de Datos
 
