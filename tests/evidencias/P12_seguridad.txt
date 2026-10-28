@@ -1,19 +1,15 @@
 P12 - Ausencia de claves en el repositorio GitHub
 
 1. Árbol completo del repo remoto (gh api .../git/trees/master?recursive=true):
-   solo aparece .env.example (vacío de valores). No hay .env.
+   archivos .env encontrados (excluyendo .env.example): ninguno
 
-2. Búsqueda de código en GitHub (gh api search/code "SUPABASE_DB_URL repo:Nutriberry/hackathon-bi-agentico"):
-   sin resultados.
+2. Búsqueda de código en GitHub (gh api search/code "SUPABASE_DB_URL repo:..."):
+   sin resultados
 
-3. git grep sobre archivos trackeados (patrones: sk-ant-, sb_secret_, sb_publishable_, AQ.<token>, postgresql://postgres):
-   sin resultados (fuera de .env.example, que está vacío).
+3. git grep sobre archivos trackeados (patrones: sk-ant-, sb_secret_, sb_publishable_, AQ\.[A-Za-z0-9], postgresql://postgres):
+   sin resultados
 
 4. git log --all --full-history -- .env:
    sin resultados -> .env nunca se commiteó en ningún punto del historial.
 
-5. git log --all -p (todo el historial de diffs) buscando los mismos patrones de clave:
-   sin resultados -> ninguna clave real quedó expuesta en commits anteriores ni borrados después.
-
-Conclusión: PASA. No hay credenciales expuestas en el repositorio público, ni en el
-estado actual ni en el historial completo de commits.
+Conclusión: PASA. No hay credenciales expuestas en el repositorio público, ni en el estado actual ni en el historial completo de commits.

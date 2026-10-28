@@ -7,5 +7,5 @@ Resultado: {'facturacion_total': 20108995.4, 'n_productos': 4878, 'n_productos_a
 
 P05 - ventas_producto con código inexistente XXXX
 is_error: False
-Resultado: [] (lista vacía, sin excepción)
-El servidor sigue vivo tras la llamada (se verificó con una nueva llamada a kpi_resumen en la misma sesión, que respondió con éxito).
+Resultado: []
+El servidor sigue vivo tras la llamada: True

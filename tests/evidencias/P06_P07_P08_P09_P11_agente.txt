@@ -1,103 +1,115 @@
 P06 - Pregunta: ¿Qué recomiendas reponer o revisar?
 Herramientas usadas: ['kpi_resumen{}', "productos_en_riesgo{'limite': 10, 'umbral_caida': 0.3}", "tasa_cancelacion{'limite': 50, 'min_unidades': 100}"]
 Respuesta:
-### Resumen General
-El catálogo actual cuenta con 4,878 productos y una facturación total de 20,108,995.40. Los productos de la clase A representan 1,036 artículos y concentran el 80.02% de la facturación global. 
+**Resumen inicial**
+El catálogo cuenta con **4,878** productos totales, de los cuales **1,036** pertenecen a la clase A (generando el **80.02%** de la facturación total de **20,108,995.40**). Al analizar los productos clave de clase A que han sufrido caídas superiores al 30% en sus ventas entre septiembre-noviembre de 2010 y el mismo periodo de 2011, ninguno de ellos figura en el ranking principal de alta tasa de cancelación (>10%), por lo que la causa principal de su caída apunta a una pérdida de demanda o rotación comercial.
 
-A continuación se analizan los principales productos de clase A cuyas ventas cayeron más de un 30% en el periodo septiembre-noviembre de 2011 frente al mismo periodo de 2010 (Herramientas utilizadas: `kpi_resumen`, `productos_en_riesgo` y `tasa_cancelacion`).
+---
 
-### Productos Analizados y Recomendaciones
+### Tabla de Productos Analizados
 
-| Producto (Descripción) | Código | Variación Ventas (Sep-Nov 2010 vs 2011) | Tasa de Cancelación | Acción Recomendada |
+| Stock Code | Descripción | Variación Ventas (Sep-Nov 10 vs 11) | Tasa de Cancelación | Acción Recomendada |
 | :--- | :--- | :---: | :---: | :--- |
-| **SET OF 3 CASES WOODLAND DESIGN** | `21432` | -100% (De 808.46 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **RED WHITE SCARF HOT WATER BOTTLE** | `21488` | -100% (De 6,363.52 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **LOVE LARGE WOOD LETTERS** | `21361` | -100% (De 1,834.91 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **WHITE DOVE HONEYCOMB PAPER GARLAND** | `21186` | -100% (De 3,849.97 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **SANDWICH BATH SPONGE** | `20966` | -100% (De 1,212.42 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **PINK SPOTTY CHILDS UMBRELLA** | `20681` | -100% (De 1,407.45 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **INFLATABLE POLITICAL GLOBE** | `10002` | -100% (De 1,765.43 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **ANTIQUE GLASS HEART DECORATION** | `21143` | -100% (De 1,212.42 a 0)* | Sin datos | Reducir reposición o lanzar promoción |
-| **VINTAGE BILLBOARD TEA MUG** | `21069` | -100% (De 535.97 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-| **SET OF THREE VINTAGE GIFT WRAPS** | `21491` | -100% (De 3,278.14 a 0) | Sin datos | Reducir reposición o lanzar promoción |
-
-*\*Nota: Las ventas de 2010 para estos artículos oscilaron entre 535.97 y 6,363.52, cayendo por completo a 0 en el periodo homólogo de 2011.*
+| **21432** | SET OF 3 CASES WOODLAND DESIGN | -100% (808.46 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **21488** | RED WHITE SCARF HOT WATER BOTTLE | -100% (6363.52 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **21361** | LOVE LARGE WOOD LETTERS | -100% (1834.91 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **21186** | WHITE DOVE HONEYCOMB PAPER GARLAND | -100% (3849.97 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **20966** | SANDWICH BATH SPONGE | -100% (1212.42 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **20681** | PINK SPOTTY CHILDS UMBRELLA | -100% (1407.45 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **10002** | INFLATABLE POLITICAL GLOBE | -100% (1765.43 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **21143** | ANTIQUE GLASS HEART DECORATION | -100% (100% caída, ventas 2325.03 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **21069** | VINTAGE BILLBOARD TEA MUG | -100% (535.97 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
+| **21491** | SET OF THREE VINTAGE GIFT WRAPS | -100% (3278.14 a 0.00) | Sin datos | Reducir reposición o lanzar promoción |
 
 ---
 
 ### Recomendaciones Detalladas
 
-1. **Reducir reposición o lanzar promoción** para los 10 productos analizados (`21432`, `21488`, `21361`, `21186`, `20966`, `20681`, `10002`, `21143`, `21069`, `21491`):
-   * **Motivo:** Ninguno de estos artículos registra datos en el ranking superior de cancelaciones (lo que indica que no sufren de problemas operativos o de devoluciones masivas), pero presentan una caída del 100% en su facturación durante sep-nov 2011 en comparación con sep-nov 2010. Esto apunta a una pérdida drástica de demanda o falta de rotación comercial, por lo que se aconseja evaluar campañas promocionales o minimizar las futuras órdenes de compra.
+Para todos los productos evaluados se observa una contracción absoluta del 100% en las ventas comparando los periodos septiembre-noviembre de 2010 frente a 2011 (pasando de generar importes como 6,363.52 en el caso de `RED WHITE SCARF HOT WATER BOTTLE` o 3,849.97 en `WHITE DOVE HONEYCOMB PAPER GARLAND` a registrar cero ventas). 
+
+Dado que ninguno de estos artículos registra tasas de cancelación elevadas en el umbral de análisis, la recomendación comercial para este grupo es **reducir la reposición o lanzar promociones** para reactivar su rotación, ya que el problema radica en la falta de demanda actual y no en incidencias operativas o de calidad.
 ----------------------------------------------------------------------
 P07 - Pregunta: ¿Qué productos importantes están cayendo?
-Herramientas usadas: ["productos_en_riesgo{'umbral_caida': 0.3, 'limite': 10}"]
+Herramientas usadas: ['kpi_resumen{}', "productos_en_riesgo{'limite': 10, 'umbral_caida': 0.3}", "tasa_cancelacion{'min_unidades': 100, 'limite': 50}"]
 Respuesta:
-Utilizando la herramienta `productos_en_riesgo`, se han identificado los productos de clase A (los que concentran el mayor volumen de facturación) que presentan caídas superiores al 30% en sus ventas durante el periodo de septiembre a noviembre de 2011 frente al mismo periodo de 2010.
+Para responder a tu consulta, hemos analizado los datos de ventas y el comportamiento del catálogo utilizando las herramientas de Business Intelligence.
 
-A continuación se muestra el listado de los principales productos afectados que han registrado una caída del 100% en sus ventas (dejando de vender en el periodo analizado de 2011):
+### Resumen de situación
+El catálogo global cuenta con **4.878 productos** activos y una facturación total de **20.108.995,40**. Los **1.036 productos de clase A** concentran el **80,02%** de la facturación total. Al comparar el periodo de septiembre a noviembre de 2011 frente al mismo periodo de 2010, se han identificado varios productos importantes (clase A) que han sufrido caídas notables en sus ventas (variación del -100%, es decir, sin ventas registradas en 2011).
 
-| Código | Producto | Ventas Sep-Nov 2010 | Ventas Sep-Nov 2011 | Variación |
-|---|---|---|---|---|
-| `21432` | SET OF 3 CASES WOODLAND DESIGN | 808.46 € | 0.00 € | -100% |
-| `21488` | RED WHITE SCARF HOT WATER BOTTLE | 6,363.52 € | 0.00 € | -100% |
-| `21361` | LOVE LARGE WOOD LETTERS | 1,834.91 € | 0.00 € | -100% |
-| `21186` | WHITE DOVE HONEYCOMB PAPER GARLAND | 3,849.97 € | 0.00 € | -100% |
-| `20966` | SANDWICH BATH SPONGE | 1,212.42 € | 0.00 € | -100% |
-| `20681` | PINK SPOTTY CHILDS UMBRELLA | 1,407.45 € | 0.00 € | -100% |
-| `10002` | INFLATABLE POLITICAL GLOBE | 1,765.43 € | 0.00 € | -100% |
-| `21143` | ANTIQUE GLASS HEART DECORATION | 2,325.03 € | 0.00 € | -100% |
-| `21069` | VINTAGE BILLBOARD TEA MUG | 535.97 € | 0.00 € | -100% |
-| `21491` | SET OF THREE VINTAGE GIFT WRAPS | 3,278.14 € | 0.00 € | -100% |
+*(Herramientas utilizadas: `kpi_resumen`, `productos_en_riesgo` y `tasa_cancelacion`)*
 
-*Datos obtenidos mediante la herramienta `productos_en_riesgo`.*
+---
+
+### Productos Clase A con Mayor Caída (Septiembre - Noviembre 2011 vs 2010)
+
+| Código (Stock) | Producto | Ventas 2010 | Ventas 2011 | Variación | Tasa de Cancelación | Acción Recomendada |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **21432** | SET OF 3 CASES WOODLAND DESIGN | 808.46 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **21488** | RED WHITE SCARF HOT WATER BOTTLE | 6363.52 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **21361** | LOVE LARGE WOOD LETTERS | 1834.91 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **21186** | WHITE DOVE HONEYCOMB PAPER GARLAND | 3849.97 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **20966** | SANDWICH BATH SPONGE | 1212.42 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **20681** | PINK SPOTTY CHILDS UMBRELLA | 1407.45 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **10002** | INFLATABLE POLITICAL GLOBE | 1765.43 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **21143** | ANTIQUE GLASS HEART DECORATION | 2325.03 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **21069** | VINTAGE BILLBOARD TEA MUG | 535.97 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+| **21491** | SET OF THREE VINTAGE GIFT WRAPS | 3278.14 | 0.00 | -100% | Sin datos en top cancelaciones | Reducir reposición o lanzar promoción |
+
+---
+
+### Recomendaciones Detalladas
+Ninguno de estos productos figura en el ranking principal de alta tasa de cancelación (con tasa $\ge$ 10%), lo que indica que su caída no responde a problemas masivos de devoluciones o incidencias de calidad, sino a una clara contracción en la demanda o falta de rotación comercial en el periodo analizado.
+
+* **Acción sugerida:** **Reducir reposición o lanzar promoción** para estimular el interés en estos artículos clave antes de que pierden tracción definitiva en el inventario.
 ----------------------------------------------------------------------
 P08 - Pregunta: ¿Qué tiempo hace en Madrid?
 Herramientas usadas: []
 Respuesta:
-No puedo responder a eso, ya que solo puedo ayudarte con datos de ventas, productos, KPIs y cancelaciones de la tienda Online Retail II. ¿Hay alguna consulta sobre el catálogo o el rendimiento de la tienda en la que te pueda ayudar?
+Hola. Como asistente virtual de Business Intelligence para **Online Retail II**, mi especialidad es analizar datos de ventas, clasificar productos y revisar riesgos o cancelaciones en la tienda. No puedo consultar información sobre el clima ni responder preguntas ajenas a la actividad comercial de la tienda. 
+
+¿Te puedo ayudar con algún análisis de ventas, productos en riesgo o tasas de cancelación?
 ----------------------------------------------------------------------
 P09 - Pregunta: ¿Cuál es el stock actual?
 Herramientas usadas: []
 Respuesta:
-Lo siento, pero el sistema no dispone de información sobre el stock actual de los productos, ya que el conjunto de datos no incluye esa métrica. Si necesitas consultar cifras globales de ventas, productos en riesgo de caída o tasas de cancelación, estaré encantado de ayudarte con eso.
+Lo siento, no puedo ayudarte con eso. Como asistente de Business Intelligence para **Online Retail II**, mis capacidades se limitan a analizar datos de ventas, clasificar productos (matriz ABC) y alertar sobre artículos clave en riesgo o cancelaciones. 
+
+El dataset actual no incluye información sobre niveles de stock, por lo que no dispongo de datos sobre existencias actuales. Si necesitas consultar KPIs globales, analizar productos con caídas de ventas o revisar tasas de cancelación, estaré encantado de ayudarte.
 ----------------------------------------------------------------------
 P11 - Pregunta: ¿Cómo han ido las ventas del producto 85123A en los últimos meses?
 Herramientas usadas: ["ventas_producto{'stock_code': '85123A'}"]
 Respuesta:
-Utilizando la herramienta **`ventas_producto`**, a continuación se detalla la evolución mensual de unidades e importe vendidos para el producto **85123A**:
+Utilizando la herramienta `ventas_producto`, aquí tienes la evolución mensual de unidades e importe vendidos para el producto **85123A**:
 
-### Evolución mensual (2009 - 2011)
+| Mes | Unidades Vendidas | Importe (£) |
+| :--- | :---: | :---: |
+| Diciembre 2009 | 6.445 | 17.357,60 |
+| Enero 2010 | 5.486 | 14.706,69 |
+| Febrero 2010 | 2.911 | 8.030,57 |
+| Marzo 2010 | 5.076 | 14.252,40 |
+| Abril 2010 | 3.702 | 10.063,26 |
+| Mayo 2010 | 4.435 | 11.967,49 |
+| Junio 2010 | 4.350 | 11.766,57 |
+| Julio 2010 | 4.028 | 10.705,64 |
+| Agosto 2010 | 4.708 | 12.684,23 |
+| Septiembre 2010 | 4.394 | 11.766,54 |
+| Octubre 2010 | 4.586 | 12.646,62 |
+| Noviembre 2010 | 6.542 | 17.599,50 |
+| Diciembre 2010 | 5.576 | 15.479,12 |
+| Enero 2011 | 5.533 | 15.223,21 |
+| Febrero 2011 | 1.877 | 5.140,11 |
+| Marzo 2011 | 1.998 | 5.597,90 |
+| Abril 2011 | 3.843 | 10.017,79 |
+| Mayo 2011 | 4.006 | 11.216,42 |
+| Junio 2011 | 1.675 | 4.680,81 |
+| Julio 2011 | 3.009 | 8.504,11 |
+| Agosto 2011 | 2.075 | 5.620,57 |
+| Septiembre 2011 | 2.478 | 6.957,46 |
+| Octubre 2011 | 1.689 | 4.761,95 |
+| Noviembre 2011 | 4.910 | 14.136,70 |
+| Diciembre 2011 | 815 | 2.226,41 |
 
-| Mes | Unidades Vendidas | Importe Total (£) |
-| :--- | :--- | :--- |
-| **2009-12** | 6,445 | 17,357.60 |
-| **2010-01** | 5,486 | 14,706.69 |
-| **2010-02** | 2,911 | 8,030.57 |
-| **2010-03** | 5,076 | 14,252.40 |
-| **2010-04** | 3,702 | 10,063.26 |
-| **2010-05** | 4,435 | 11,967.49 |
-| **2010-06** | 4,350 | 11,766.57 |
-| **2010-07** | 4,028 | 10,705.64 |
-| **2010-08** | 4,708 | 12,684.23 |
-| **2010-09** | 4,394 | 11,766.54 |
-| **2010-10** | 4,586 | 12,646.62 |
-| **2010-11** | 6,542 | 17,599.50 |
-| **2010-12** | 5,576 | 15,479.12 |
-| **2011-01** | 5,533 | 15,223.21 |
-| **2011-02** | 1,877 | 5,140.11 |
-| **2011-03** | 1,998 | 5,597.90 |
-| **2011-04** | 3,843 | 10,017.79 |
-| **2011-05** | 4,006 | 11,216.42 |
-| **2011-06** | 1,675 | 4,680.81 |
-| **2011-07** | 3,009 | 8,504.11 |
-| **2011-08** | 2,075 | 5,620.57 |
-| **2011-09** | 2,478 | 6,957.46 |
-| **2011-10** | 1,689 | 4,761.95 |
-| **2011-11** | 4,910 | 14,136.70 |
-| **2011-12** | 815 | 2,226.41 |
-
-### Resumen del comportamiento
-* **Tendencia general:** Las ventas muestran un patrón estacional fuerte, con picos muy marcados hacia finales de año (noviembre y diciembre) tanto en 2009, 2010 como en 2011 (alcanzando 6,542 unidades en noviembre de 2010 y 4,910 en noviembre de 2011).
-* **Últimos meses (2011):** Tras un repunte significativo en noviembre de 2011 (4,910 unidades / £14,136.70), se registra una caída pronunciada en diciembre de 2011 con 815 unidades y £2,226.41 facturados.
+**Resumen de tendencia:**
+El producto mantiene una fuerte estacionalidad con picos importantes de ventas durante los meses de noviembre de cada año (alcanzando 6.542 unidades en noviembre de 2010 y 4.910 unidades en noviembre de 2011). Durante gran parte de 2011 (especialmente en febrero, junio y diciembre), las ventas sufrieron descensos notables en comparación con sus equivalentes del año anterior.
 ----------------------------------------------------------------------
