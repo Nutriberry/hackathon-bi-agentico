@@ -18,10 +18,8 @@ Las pruebas P01–P09 y P12 se ejecutan de forma automática con `tests/ejecutar
 | **P08** | Agente Gemini | Delimitación del dominio y fuera de ámbito | Pregunta: *"¿Qué tiempo hace en Madrid?"* | El agente se niega amablemente a responder sin invocar ninguna herramienta. | Se negó, 0 herramientas usadas. | Pasada | `tests/evidencias/P06_P07_P08_P09_P11_agente.txt` |
 | **P09** | Agente Gemini | Control de alucinaciones ante datos no disponibles | Pregunta: *"¿Cuál es el stock actual?"* | Responde claramente que no dispone de dichos datos, absteniéndose de inventar cifras. | Dijo que no dispone de datos de stock, 0 herramientas usadas. | Pasada | `tests/evidencias/P06_P07_P08_P09_P11_agente.txt` |
 | **P10** | Frontend Streamlit | Interfaz interactiva y explicabilidad (4 botones) | Abrir app en Modo Real y pulsar los 4 botones predefinidos | Muestra la respuesta del agente y el desplegable *"Cómo lo ha calculado"* conteniendo la tabla correspondiente. | Los 4 botones responden con datos reales y citan la herramienta usada (`kpi_resumen`, `productos_en_riesgo`, `tasa_cancelacion`). Se detectó además un error 503 de Gemini sin tratar, ya corregido con reintentos. | Pasada | `tests/evidencias/P10_1_resumen_kpi.png`, `P10_2_productos_cayendo.png`, `P10_3_cancelaciones.png`, `P10_4_recomendacion.png`, `P10_error_503.png` |
-| **P11** | Flujo Completo | Integración End-to-End desde la UI | Pregunta escrita manualmente en el chat interactivo | Muestra la respuesta contextualizada utilizando los datos reales almacenados en Supabase. | Pregunta libre sobre el producto 85123A → usó `ventas_producto`, serie mensual real 2009-2011. | Pasada* | `tests/evidencias/P06_P07_P08_P09_P11_agente.txt` |
+| **P11** | Flujo Completo | Integración End-to-End desde la UI | Pregunta escrita manualmente en el chat interactivo | Muestra la respuesta contextualizada utilizando los datos reales almacenados en Supabase. | Pregunta libre *"¿Cómo han ido las ventas del producto 85123A?"* escrita en Modo real → usó `ventas_producto`, serie mensual real 2009-2011 con tabla y gráfico. | Pasada | `tests/evidencias/P11_1_pregunta_respuesta.png`, `P11_2_como_lo_ha_calculado.png` |
 | **P12** | Seguridad | Exposición de credenciales e ignorado de entorno | Búsqueda global de `.env`, claves API o secretos en el repositorio GitHub | La búsqueda no arroja ningún resultado ni archivo de entorno subido. | Sin resultados en el árbol del repo, en GitHub code search, ni en todo el historial de commits. | Pasada | `tests/evidencias/P12_seguridad.txt` |
-
-\* P11 se ejecutó llamando directamente a `responder()` con una pregunta libre (equivalente funcional a escribirla en `st.chat_input`), no capturada en pantalla dentro de Streamlit. Si se necesita evidencia visual desde la UI, pendiente de una captura manual adicional.
 
 ---
 
@@ -143,12 +141,12 @@ Las pruebas P01–P09 y P12 se ejecutan de forma automática con `tests/ejecutar
 
 ### P11 - Flujo completo: Consulta libre en el chat
 * **Qué se prueba:** Integración End-to-End desde el prompt de usuario en el frontend hasta la consulta a Supabase y respuesta del LLM.
-* **Entrada:** Pregunta personalizada: *"¿Cómo han ido las ventas del producto 85123A en los últimos meses?"*
+* **Entrada:** Escrita a mano en el chat de Streamlit (Modo real): *"¿Cómo han ido las ventas del producto 85123A?"*
 * **Esperado:** Respuesta precisa construida a partir de los datos reales alojados en la base de datos.
-* **Obtenido:** Usó `ventas_producto(stock_code='85123A')`; devolvió la serie mensual real 2009-2011 (25 meses, unidades e importe) con un resumen de la estacionalidad, coherente con los datos de Supabase.
-* **Estado:** Pasada*
-* **Evidencia:** `tests/evidencias/P06_P07_P08_P09_P11_agente.txt`
-* **Si falla (causa y corrección):** N/A. *Nota: ejecutada vía `responder()` directo (equivalente funcional al chat), no capturada en pantalla dentro de Streamlit — falta una captura manual si se necesita evidencia visual de la UI.*
+* **Obtenido:** Usó `ventas_producto(stock_code='85123A')`; devolvió la serie mensual real 2009-2011 con tabla, resumen de estacionalidad y gráfico de barras en el desplegable "Cómo lo ha calculado".
+* **Estado:** Pasada
+* **Evidencia:** `tests/evidencias/P11_1_pregunta_respuesta.png` (pregunta y respuesta), `tests/evidencias/P11_2_como_lo_ha_calculado.png` (herramienta, argumentos y gráfico)
+* **Si falla (causa y corrección):** N/A
 
 ---
 
