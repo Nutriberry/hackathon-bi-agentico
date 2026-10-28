@@ -14,6 +14,13 @@ from db import consultar
 mcp = MCPServer("retail-bi")
 
 FILTRO_VENTAS_VALIDAS = "NOT es_cancelacion AND price > 0"
+# El dataset mezcla códigos que no son productos reales con los stock_code de
+# artículos: gastos de envío (POST, DOT), comisiones (AMAZONFEE), cargos bancarios
+# (BANK CHARGES), descuentos (D), ajustes manuales (M, ADJUST), pruebas (TEST...),
+# tarjetas regalo (gift_...), etc. Todos distorsionan el ABC y el ranking de
+# cancelación (ej. "Discount" aparecía primero en tasa_cancelacion). Los productos
+# reales del catálogo siempre tienen stock_code de 5 cifras al inicio.
+FILTRO_PRODUCTO_REAL = "stock_code ~ '^[0-9]{5}'"
 
 
 @mcp.tool()
@@ -27,7 +34,7 @@ def kpi_resumen() -> dict:
             WITH facturacion_producto AS (
                 SELECT stock_code, SUM(importe) AS facturacion
                 FROM ventas
-                WHERE {FILTRO_VENTAS_VALIDAS}
+                WHERE {FILTRO_VENTAS_VALIDAS} AND {FILTRO_PRODUCTO_REAL}
                 GROUP BY stock_code
             ),
             acumulado AS (
@@ -68,7 +75,7 @@ def productos_en_riesgo(umbral_caida: float = 0.30, limite: int = 10) -> list[di
             WITH facturacion_producto AS (
                 SELECT stock_code, SUM(importe) AS facturacion
                 FROM ventas
-                WHERE {FILTRO_VENTAS_VALIDAS}
+                WHERE {FILTRO_VENTAS_VALIDAS} AND {FILTRO_PRODUCTO_REAL}
                 GROUP BY stock_code
             ),
             acumulado AS (
@@ -86,14 +93,14 @@ def productos_en_riesgo(umbral_caida: float = 0.30, limite: int = 10) -> list[di
             ventas_2011 AS (
                 SELECT stock_code, SUM(importe) AS facturacion_2011
                 FROM ventas
-                WHERE {FILTRO_VENTAS_VALIDAS}
+                WHERE {FILTRO_VENTAS_VALIDAS} AND {FILTRO_PRODUCTO_REAL}
                   AND invoice_date >= '2011-09-01' AND invoice_date < '2011-12-01'
                 GROUP BY stock_code
             ),
             ventas_2010 AS (
                 SELECT stock_code, SUM(importe) AS facturacion_2010
                 FROM ventas
-                WHERE {FILTRO_VENTAS_VALIDAS}
+                WHERE {FILTRO_VENTAS_VALIDAS} AND {FILTRO_PRODUCTO_REAL}
                   AND invoice_date >= '2010-09-01' AND invoice_date < '2010-12-01'
                 GROUP BY stock_code
             ),
@@ -144,18 +151,18 @@ def tasa_cancelacion(min_unidades: int = 100, limite: int = 10) -> list[dict]:
     unidades vendidas. Útil para preguntas tipo "¿qué productos tienen más
     cancelaciones / problemas de calidad?"."""
     try:
-        filas = consultar("""
+        filas = consultar(f"""
             WITH vendidas AS (
                 SELECT stock_code, SUM(quantity) AS unidades_vendidas
                 FROM ventas
-                WHERE NOT es_cancelacion AND price > 0
+                WHERE {FILTRO_VENTAS_VALIDAS} AND {FILTRO_PRODUCTO_REAL}
                 GROUP BY stock_code
                 HAVING SUM(quantity) >= %s
             ),
             canceladas AS (
                 SELECT stock_code, SUM(ABS(quantity)) AS unidades_canceladas
                 FROM ventas
-                WHERE es_cancelacion
+                WHERE es_cancelacion AND {FILTRO_PRODUCTO_REAL}
                 GROUP BY stock_code
             ),
             -- algunos stock_code tienen más de una descripción en el dataset; nos
@@ -207,7 +214,7 @@ def ventas_producto(stock_code: str) -> list[dict]:
                 SUM(quantity) AS unidades,
                 SUM(importe) AS importe
             FROM ventas
-            WHERE {FILTRO_VENTAS_VALIDAS} AND stock_code = %s
+            WHERE {FILTRO_VENTAS_VALIDAS} AND {FILTRO_PRODUCTO_REAL} AND stock_code = %s
             GROUP BY date_trunc('month', invoice_date)
             ORDER BY date_trunc('month', invoice_date);
         """, (stock_code,))

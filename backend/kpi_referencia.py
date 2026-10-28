@@ -11,13 +11,17 @@ from dotenv import load_dotenv
 RUTA_SALIDA = "tests/kpi_referencia.md"
 
 FILTRO_BASE = "NOT es_cancelacion AND price > 0"
+# Códigos que no son productos reales (envío, comisiones, descuentos, ajustes,
+# pruebas, tarjetas regalo...) distorsionan el ABC y el ranking de cancelación.
+# Los productos reales siempre tienen stock_code de 5 cifras al inicio.
+FILTRO_PRODUCTO_REAL = "stock_code ~ '^[0-9]{5}'"
 
 SQL_ABC = f"""
 -- Facturación por producto (sin cancelaciones ni price<=0)
 WITH facturacion_producto AS (
     SELECT stock_code, SUM(importe) AS facturacion
     FROM ventas
-    WHERE {FILTRO_BASE}
+    WHERE {FILTRO_BASE} AND {FILTRO_PRODUCTO_REAL}
     GROUP BY stock_code
 ),
 -- Ordenamos de mayor a menor y acumulamos el % de facturación (curva de Pareto)
@@ -42,7 +46,7 @@ SQL_PRODUCTOS_RIESGO = f"""
 WITH facturacion_producto AS (
     SELECT stock_code, SUM(importe) AS facturacion
     FROM ventas
-    WHERE {FILTRO_BASE}
+    WHERE {FILTRO_BASE} AND {FILTRO_PRODUCTO_REAL}
     GROUP BY stock_code
 ),
 acumulado AS (
@@ -62,13 +66,13 @@ clase_a AS (
 ventas_2011 AS (
     SELECT stock_code, SUM(importe) AS facturacion_2011
     FROM ventas
-    WHERE {FILTRO_BASE} AND invoice_date >= '2011-09-01' AND invoice_date < '2011-12-01'
+    WHERE {FILTRO_BASE} AND {FILTRO_PRODUCTO_REAL} AND invoice_date >= '2011-09-01' AND invoice_date < '2011-12-01'
     GROUP BY stock_code
 ),
 ventas_2010 AS (
     SELECT stock_code, SUM(importe) AS facturacion_2010
     FROM ventas
-    WHERE {FILTRO_BASE} AND invoice_date >= '2010-09-01' AND invoice_date < '2010-12-01'
+    WHERE {FILTRO_BASE} AND {FILTRO_PRODUCTO_REAL} AND invoice_date >= '2010-09-01' AND invoice_date < '2010-12-01'
     GROUP BY stock_code
 )
 SELECT
@@ -84,19 +88,19 @@ WHERE v10.facturacion_2010 > 0
 ORDER BY variacion ASC;
 """
 
-SQL_TOP_CANCELACION = """
+SQL_TOP_CANCELACION = f"""
 -- Tasa de cancelación = unidades canceladas / unidades vendidas, min. 100 unidades vendidas
 WITH vendidas AS (
     SELECT stock_code, SUM(quantity) AS unidades_vendidas
     FROM ventas
-    WHERE NOT es_cancelacion AND price > 0
+    WHERE {FILTRO_BASE} AND {FILTRO_PRODUCTO_REAL}
     GROUP BY stock_code
     HAVING SUM(quantity) >= 100
 ),
 canceladas AS (
     SELECT stock_code, SUM(ABS(quantity)) AS unidades_canceladas
     FROM ventas
-    WHERE es_cancelacion
+    WHERE es_cancelacion AND {FILTRO_PRODUCTO_REAL}
     GROUP BY stock_code
 )
 SELECT
