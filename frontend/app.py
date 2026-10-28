@@ -21,9 +21,9 @@ PREGUNTAS_EJEMPLO = [
 # --- Datos de ejemplo para el modo demo (sin base de datos ni claves) ---
 
 KPI_DEMO = {
-    "facturacion_total": 20972594.57,
-    "n_productos": 4917,
-    "n_productos_a": 1005,
+    "facturacion_total": 20108995.40,
+    "n_productos": 4878,
+    "n_productos_a": 1036,
     "pct_facturacion_a": 0.8002,
 }
 
@@ -57,8 +57,8 @@ def responder_falso(pregunta: str) -> dict:
 
     if "kpi" in texto or "resumen" in texto:
         herramientas.append({"nombre": "kpi_resumen", "argumentos": {}, "resultado": KPI_DEMO})
-        respuesta = ("La facturación total es de 20.972.594,57. De 4.917 productos, "
-                     "1.005 son clase A y concentran el 80,0 % de la facturación.")
+        respuesta = ("La facturación total es de 20.108.995,40. De 4.878 productos, "
+                     "1.036 son clase A y concentran el 80,02 % de la facturación.")
     elif "cancela" in texto:
         herramientas.append({"nombre": "tasa_cancelacion",
                              "argumentos": {"min_unidades": 100, "limite": 10},

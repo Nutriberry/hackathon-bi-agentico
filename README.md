@@ -203,10 +203,10 @@ Las pruebas P10 y P11 (pantalla) se validan a mano con capturas en `tests/eviden
 
 Proyecto desarrollado por:
 
-- [Nombre 1]
-- [Nombre 2]
-- [Nombre 3]
-- [Nombre 4]
+- Rafael Celis
+- María José Girón
+- Giancarlo De las Casas
+- Angello Pequeño
 
 > ⚠️ **Seguridad**: el fichero `.env` (que contiene las claves de API y la cadena de conexión a la base de datos) está incluido en `.gitignore` y **nunca se sube al repositorio**. Usa `.env.example` como plantilla.
 
