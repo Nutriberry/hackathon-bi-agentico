@@ -1,17 +1,37 @@
 """Servidor MCP "retail-bi": solo lectura sobre la tabla `ventas` de Supabase.
 
 Excluye siempre cancelaciones y price<=0, salvo en tasa_cancelacion (que sí
-necesita ver las cancelaciones para calcular la tasa).
+necesita ver las cancelaciones para calcular la tasa). Las herramientas
+`generar_informe` y `generar_presentacion` son la única excepción de
+escritura: guardan un archivo de salida (informe/presentación) en `outputs/`
+con datos ya consultados; nunca modifican la tabla `ventas` ni ningún dato
+de origen.
 """
+import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from mcp.server.mcpserver import MCPServer
+from pptx import Presentation
+from pptx.util import Inches, Pt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from db import consultar
 
 mcp = MCPServer("retail-bi")
+
+RAIZ = Path(__file__).resolve().parent.parent
+OUTPUTS_DIR = RAIZ / "outputs"
+OUTPUTS_DIR.mkdir(exist_ok=True)
+
+
+def _nombre_archivo(titulo: str, extension: str) -> Path:
+    """Convierte un título en un nombre de archivo seguro dentro de outputs/
+    (sin rutas ni caracteres que permitan escapar de esa carpeta)."""
+    slug = re.sub(r"[^a-z0-9]+", "-", titulo.lower()).strip("-") or "informe"
+    marca_tiempo = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return OUTPUTS_DIR / f"{slug}-{marca_tiempo}.{extension}"
 
 FILTRO_VENTAS_VALIDAS = "NOT es_cancelacion AND price > 0"
 # El dataset mezcla códigos que no son productos reales con los stock_code de
@@ -236,6 +256,102 @@ def ventas_producto(stock_code: str) -> list[dict]:
             }
             for f in filas
         ]
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def generar_informe(titulo: str, contenido_markdown: str) -> dict:
+    """Guarda un informe en formato Markdown (.md) dentro de la carpeta `outputs/`,
+    con el contenido que le pases (ya redactado, con los datos de las otras
+    herramientas). Úsala cuando el usuario pida "guárdalo en un archivo",
+    "descárgalo" o "dame un informe/documento" con texto, tablas o listas.
+    No sirve para PowerPoint: para eso usa `generar_presentacion`.
+    No modifica ningún dato de `ventas`, solo crea un archivo nuevo de salida."""
+    try:
+        ruta = _nombre_archivo(titulo, "md")
+        ruta.write_text(f"# {titulo}\n\n{contenido_markdown}\n", encoding="utf-8")
+        return {
+            "archivo": str(ruta.relative_to(RAIZ)),
+            "mensaje": f"Informe guardado en {ruta.relative_to(RAIZ)}",
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool()
+def generar_presentacion(titulo: str = "Agente de BI - Productos clave en riesgo") -> dict:
+    """Genera una presentación PowerPoint (.pptx) en `outputs/` con los datos
+    REALES ya consultados en Supabase: resumen de KPI, productos clase A en
+    riesgo y productos con más cancelaciones. Úsala cuando el usuario pida
+    "una presentación", "un PowerPoint" o "un .pptx". No necesita argumentos
+    de datos: ella misma vuelve a consultar las herramientas internamente,
+    así que los números siempre salen de la base de datos, nunca inventados.
+    No modifica ningún dato de `ventas`, solo crea un archivo nuevo de salida."""
+    try:
+        kpi = kpi_resumen()
+        riesgo = productos_en_riesgo(0.30, 10)
+        cancelacion = tasa_cancelacion(100, 10)
+
+        prs = Presentation()
+        prs.slide_width = Inches(13.33)
+        prs.slide_height = Inches(7.5)
+
+        # Diapositiva 1: título
+        slide = prs.slides.add_slide(prs.slide_layouts[0])
+        slide.shapes.title.text = titulo
+        slide.placeholders[1].text = "Datos reales: Online Retail II (Supabase)"
+
+        # Diapositiva 2: resumen de KPI
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
+        slide.shapes.title.text = "Resumen de KPI"
+        cuerpo = slide.placeholders[1].text_frame
+        if isinstance(kpi, dict) and "error" not in kpi:
+            cuerpo.text = f"Facturación total: {kpi['facturacion_total']:,.2f}"
+            cuerpo.add_paragraph().text = f"Productos totales: {kpi['n_productos']}"
+            cuerpo.add_paragraph().text = f"Productos clase A: {kpi['n_productos_a']}"
+            cuerpo.add_paragraph().text = f"% facturación clase A: {kpi['pct_facturacion_a']:.2%}"
+        else:
+            cuerpo.text = f"No se pudo calcular: {kpi.get('error', 'desconocido')}"
+
+        # Diapositiva 3: productos en riesgo (tabla)
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        slide.shapes.title.text = "Productos clase A en riesgo (top 10)"
+        if isinstance(riesgo, list) and riesgo:
+            filas, columnas = len(riesgo) + 1, 4
+            tabla = slide.shapes.add_table(
+                filas, columnas, Inches(0.5), Inches(1.5), Inches(12), Inches(5)
+            ).table
+            for c, encabezado in enumerate(["Código", "Producto", "Variación", "Ventas 2010"]):
+                tabla.cell(0, c).text = encabezado
+            for i, p in enumerate(riesgo, start=1):
+                tabla.cell(i, 0).text = str(p["stock_code"])
+                tabla.cell(i, 1).text = str(p.get("description") or "")
+                tabla.cell(i, 2).text = f"{p['variacion_pct']:.1%}"
+                tabla.cell(i, 3).text = f"{p['ventas_2010']:,.2f}"
+
+        # Diapositiva 4: cancelaciones (tabla)
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        slide.shapes.title.text = "Productos con más cancelaciones (top 10)"
+        if isinstance(cancelacion, list) and cancelacion:
+            filas, columnas = len(cancelacion) + 1, 4
+            tabla = slide.shapes.add_table(
+                filas, columnas, Inches(0.5), Inches(1.5), Inches(12), Inches(5)
+            ).table
+            for c, encabezado in enumerate(["Código", "Producto", "Unidades vendidas", "Tasa"]):
+                tabla.cell(0, c).text = encabezado
+            for i, p in enumerate(cancelacion, start=1):
+                tabla.cell(i, 0).text = str(p["stock_code"])
+                tabla.cell(i, 1).text = str(p.get("description") or "")
+                tabla.cell(i, 2).text = str(p["unidades_vendidas"])
+                tabla.cell(i, 3).text = f"{p['tasa']:.1%}"
+
+        ruta = _nombre_archivo(titulo, "pptx")
+        prs.save(str(ruta))
+        return {
+            "archivo": str(ruta.relative_to(RAIZ)),
+            "mensaje": f"Presentación guardada en {ruta.relative_to(RAIZ)}",
+        }
     except Exception as e:
         return {"error": str(e)}
 
