@@ -6,9 +6,9 @@ cancelaciones altas en una tienda online.
 | Bloque | Tiempo | Minuto | Habla |
 |---|---|---|---|
 | 1. Problema, investigación y oportunidad | 2 min | 0:00 – 2:00 | Angello Pequeño |
-| 2. Arquitectura, Skill, MCP y base de datos | 2 min | 2:00 – 4:00 | María José Girón |
+| 2. Arquitectura, Skill, MCP y base de datos | 2 min | 2:00 – 4:00 | Giancarlo De las Casas |
 | 3. Demo en directo | 3 min | 4:00 – 7:00 | Rafael Celis |
-| 4. Batería de pruebas | 2 min | 7:00 – 9:00 | Giancarlo De las Casas |
+| 4. Batería de pruebas | 2 min | 7:00 – 9:00 | María José Girón |
 | 5. Reflexión y aprendizajes | 1 min | 9:00 – 10:00 | Todos (15 s cada uno) |
 
 > Reparto propuesto: cada uno presenta lo que ha hecho. Cambiad el reparto
@@ -43,7 +43,7 @@ se cae, hay que saberlo ya, no a final de trimestre."
 
 ---
 
-## Bloque 2 · Arquitectura, Skill, MCP y base de datos (2 min) · María José Girón
+## Bloque 2 · Arquitectura, Skill, MCP y base de datos (2 min) · Giancarlo De las Casas
 
 **Mostrar:** el diagrama de `docs/arquitectura.md`.
 
@@ -112,7 +112,7 @@ Cualquier número de la respuesta se puede comprobar aquí."
 
 ---
 
-## Bloque 4 · Batería de pruebas (2 min) · Giancarlo De las Casas
+## Bloque 4 · Batería de pruebas (2 min) · María José Girón
 
 **Mostrar:** la tabla resumen de `tests/pruebas.md`.
 
