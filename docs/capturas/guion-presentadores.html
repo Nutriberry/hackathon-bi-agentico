@@ -332,9 +332,9 @@
       <div class="block">
         <h3>Qué decir</h3>
         <ul class="talk">
-          <li>12 pruebas por capas: base de datos (P01–P02), servidor MCP (P03–P05), Skill (P06), agente (P07–P09), frontend (P10), flujo completo (P11), seguridad (P12).</li>
-          <li>P01–P09, P11 y P12 automatizadas con <code>tests/ejecutar_pruebas.py</code>; P10 y P11 también comprobadas a mano con capturas. Evidencias en <code>tests/evidencias/</code>.</li>
-          <li>Validación cruzada: calculamos los KPI por SQL directo (<code>tests/kpi_referencia.md</code>) y comprobamos que el agente da los mismos valores (P04, P07).</li>
+          <li>Probamos el sistema de abajo hacia arriba: primero que los datos estén bien, luego que las piezas funcionen por separado, y al final que todo junto responda bien a un usuario real.</li>
+          <li>P01–P09, P11 y P12 automatizadas con <code>tests/ejecutar_pruebas.py</code>; P10 y P11 también comprobadas a mano en la app, con capturas. Evidencias en <code>tests/evidencias/</code>.</li>
+          <li>Validación cruzada: calculamos los KPI por SQL directo (<code>tests/kpi_referencia.md</code>) y comprobamos que el agente da exactamente los mismos valores (P04, P07) — así sabemos que no está inventando ni redondeando mal.</li>
         </ul>
       </div>
       <div class="block">
@@ -343,6 +343,54 @@
           <div class="stat"><div class="num">7</div><div class="lbl">capas probadas</div></div>
         </div>
       </div>
+    </div>
+    <div class="block" style="margin-top:16px">
+      <h3>Las 7 capas, una por una</h3>
+      <table class="errs">
+        <tr><th>Capa</th><th>Pruebas</th><th>Qué se comprobó</th><th>Resultado</th></tr>
+        <tr>
+          <td>1. Base de datos</td>
+          <td>P01–P02</td>
+          <td>Que la carga de Supabase sea íntegra (ni de más ni de menos) y que se pueda consultar un producto por su código.</td>
+          <td>1.067.371 filas = mismo total que el Excel original; 5.829 filas devueltas para el producto 85123A.</td>
+        </tr>
+        <tr>
+          <td>2. Servidor MCP</td>
+          <td>P03–P05</td>
+          <td>Que las herramientas existan tal cual el contrato, que sus cálculos sean correctos, y que no se caiga con una entrada que no existe.</td>
+          <td>Las 4 herramientas exactas; <code>kpi_resumen</code> idéntico a <code>kpi_referencia.md</code>; un código inexistente devuelve lista vacía sin tumbar el servidor.</td>
+        </tr>
+        <tr>
+          <td>3. Skill</td>
+          <td>P06</td>
+          <td>Que el agente siga el procedimiento de <code>analisis-reposicion</code> (varios pasos, varias herramientas) en vez de responder con una sola consulta suelta.</td>
+          <td>Encadena <code>kpi_resumen</code> → <code>productos_en_riesgo</code> → <code>tasa_cancelacion</code> y da una recomendación por producto.</td>
+        </tr>
+        <tr>
+          <td>4. Agente</td>
+          <td>P07–P09</td>
+          <td>Que elija la herramienta correcta según la pregunta, que no se invente datos, y que sepa decir "no sé" cuando corresponde.</td>
+          <td>Cifras idénticas al SQL de referencia; se niega ante "¿qué tiempo hace en Madrid?" y ante "¿cuál es el stock actual?" sin usar ninguna herramienta.</td>
+        </tr>
+        <tr>
+          <td>5. Frontend</td>
+          <td>P10</td>
+          <td>Que los 4 botones de Streamlit, en Modo real, muestren la respuesta y el desplegable "Cómo lo ha calculado" con datos reales de Supabase.</td>
+          <td>4/4 botones correctos, con capturas en <code>tests/evidencias/P10_1…4.png</code>.</td>
+        </tr>
+        <tr>
+          <td>6. Flujo completo</td>
+          <td>P11</td>
+          <td>Que una pregunta escrita a mano (no un botón) llegue de verdad desde el chat hasta Supabase y vuelva con datos reales.</td>
+          <td>Pregunta libre sobre un producto → usa <code>ventas_producto</code> y muestra tabla y gráfico reales (<code>P11_1</code>/<code>P11_2.png</code>).</td>
+        </tr>
+        <tr>
+          <td>7. Seguridad</td>
+          <td>P12</td>
+          <td>Que no haya ninguna credencial expuesta en el repositorio público, ni ahora ni en commits anteriores.</td>
+          <td>Sin resultados: ni en el árbol del repo, ni en la búsqueda de código de GitHub, ni en todo el historial de commits.</td>
+        </tr>
+      </table>
     </div>
     <div class="block" style="margin-top:16px">
       <h3>Errores encontrados y cómo se corrigieron</h3>
