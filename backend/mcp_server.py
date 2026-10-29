@@ -69,7 +69,17 @@ def productos_en_riesgo(umbral_caida: float = 0.30, limite: int = 10) -> list[di
     """Devuelve los productos de clase A (los que generan el 80% de la facturación)
     cuyas ventas de sep-nov 2011 cayeron más de `umbral_caida` (ej. 0.30 = 30%)
     frente al mismo periodo sep-nov 2010. Ordenados de mayor a menor caída.
-    Úsala para responder preguntas tipo "¿qué productos importantes están cayendo?"."""
+    Úsala para responder preguntas tipo "¿qué productos importantes están cayendo?".
+
+    Importante sobre `variacion_pct`: un valor de -100% (-1.0) significa que el
+    producto tuvo 0 de ventas en sep-nov 2011, lo que puede indicar que dejó de
+    venderse/descatalogarse, no solo una caída de demanda. Un valor entre -30% y
+    -99% indica una caída parcial, con ventas aún activas pero en descenso. Como
+    el resultado se ordena de mayor a menor caída, con `limite` bajo (ej. 10) es
+    probable que solo veas productos en -100%, ya que suele haber varias decenas
+    empatados en ese valor antes de llegar a las caídas parciales. Al presentar
+    estos datos, acláralo brevemente para que no se confunda "sin ventas" con
+    "cayendo poco a poco"."""
     try:
         filas = consultar(f"""
             WITH facturacion_producto AS (
